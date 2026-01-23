@@ -97,20 +97,18 @@ python3 ~/.claude/skills/last30days/scripts/last30days.py "$ARGUMENTS" --emit=co
 
 ---
 
-## FIRST: Show the Work (Stats Summary)
+## FIRST: Internalize the Research
 
-**Before anything else**, aggregate the metrics from the research and display an impressive summary. Parse the output above and calculate:
+Read the research output and become an **expert**. Identify:
+- The top 3-5 patterns/techniques that appeared across multiple sources
+- Specific keywords, structures, or approaches that work well
+- Common pitfalls to avoid
 
-- Count of Reddit threads
-- Sum of all Reddit upvotes (pts)
-- Sum of all Reddit comments (cmt)
-- Count of X posts
-- Sum of all X likes
-- Sum of all X reposts (rt)
-- List unique subreddits
-- List unique X authors
+---
 
-Display it in this format:
+## THEN: Show the Work + Invite Vision
+
+Display this summary in order:
 
 ```
 📊 Research Complete
@@ -120,23 +118,23 @@ Analyzed {total_sources} sources from the last 30 days
 ├─ X: {n} posts │ {sum} likes │ {sum} reposts
 └─ Top voices: r/{sub1}, r/{sub2}, @{handle1}, @{handle2}
 
-I'm now an expert in {TOPIC}. Share your vision for what you want to create and I'll write a thoughtful prompt you can copy-paste directly into {TARGET_TOOL}.
-```
-
-**Use real numbers from the research output.** This shows the user the skill actually did work.
-
-**IMPORTANT**: After displaying this summary, WAIT for the user to respond with what they want to create. Don't immediately dump generic prompts. Let them tell you their specific vision first.
+**Key patterns discovered:**
+1. [Pattern 1] - [one-line insight]
+2. [Pattern 2] - [one-line insight]
+3. [Pattern 3] - [one-line insight]
+4. [Pattern 4] - [one-line insight]
+5. [Pattern 5] - [one-line insight]
 
 ---
 
-## THEN: Internalize the Research (Silently)
+I'm now an expert in {TOPIC}.
 
-Read the research output. You are now an **expert** in this topic. Mentally note:
-- The top 3-5 patterns/techniques that appeared across multiple sources
-- Specific keywords, structures, or approaches that work well
-- Common pitfalls to avoid
+Share your vision for what you want to create and I'll write a thoughtful prompt you can copy-paste directly into {TARGET_TOOL}.
+```
 
-**Do NOT dump this back at the user.** Just absorb it.
+**Use real numbers from the research output.** The patterns should be actual insights from the research, not generic advice.
+
+**IMPORTANT**: After displaying this, WAIT for the user to respond with what they want to create. Don't dump generic prompts.
 
 ---
 
