@@ -15,6 +15,10 @@ WEBSEARCH_WEIGHT_RELEVANCE = 0.55
 WEBSEARCH_WEIGHT_RECENCY = 0.45
 WEBSEARCH_SOURCE_PENALTY = 15  # Points deducted for lacking engagement
 
+# WebSearch date confidence adjustments
+WEBSEARCH_VERIFIED_BONUS = 10   # Bonus for URL-verified recent date (high confidence)
+WEBSEARCH_NO_DATE_PENALTY = 20  # Heavy penalty for no date signals (low confidence)
+
 # Default engagement score for unknown
 DEFAULT_ENGAGEMENT = 35
 UNKNOWN_ENGAGEMENT_PENALTY = 10
@@ -223,6 +227,11 @@ def score_websearch_items(items: List[schema.WebSearchItem]) -> List[schema.WebS
     Uses reweighted formula: 55% relevance + 45% recency - 15pt source penalty.
     This ensures WebSearch items rank below comparable Reddit/X items.
 
+    Date confidence adjustments:
+    - High confidence (URL-verified date): +10 bonus
+    - Med confidence (snippet-extracted date): no change
+    - Low confidence (no date signals): -20 penalty
+
     Args:
         items: List of WebSearch items
 
@@ -255,11 +264,14 @@ def score_websearch_items(items: List[schema.WebSearchItem]) -> List[schema.WebS
         # Apply source penalty (WebSearch < Reddit/X for same relevance/recency)
         overall -= WEBSEARCH_SOURCE_PENALTY
 
-        # Apply penalty for low date confidence
-        if item.date_confidence == "low":
-            overall -= 10
-        elif item.date_confidence == "med":
-            overall -= 5
+        # Apply date confidence adjustments
+        # High confidence (URL-verified): reward with bonus
+        # Med confidence (snippet-extracted): neutral
+        # Low confidence (no date signals): heavy penalty
+        if item.date_confidence == "high":
+            overall += WEBSEARCH_VERIFIED_BONUS  # Reward verified recent dates
+        elif item.date_confidence == "low":
+            overall -= WEBSEARCH_NO_DATE_PENALTY  # Heavy penalty for unknown
 
         item.score = max(0, min(100, int(overall)))
 

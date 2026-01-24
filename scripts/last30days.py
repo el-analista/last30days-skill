@@ -95,6 +95,8 @@ def run_research(
                     config["OPENAI_API_KEY"],
                     selected_models["openai"],
                     topic,
+                    from_date,
+                    to_date,
                     depth=depth,
                 )
             except http.HTTPError as e:
@@ -319,9 +321,14 @@ def main():
     normalized_reddit = normalize.normalize_reddit_items(reddit_items, from_date, to_date)
     normalized_x = normalize.normalize_x_items(x_items, from_date, to_date)
 
+    # Hard date filter: exclude items with verified dates outside the range
+    # This is the safety net - even if prompts let old content through, this filters it
+    filtered_reddit = normalize.filter_by_date_range(normalized_reddit, from_date, to_date)
+    filtered_x = normalize.filter_by_date_range(normalized_x, from_date, to_date)
+
     # Score items
-    scored_reddit = score.score_reddit_items(normalized_reddit)
-    scored_x = score.score_x_items(normalized_x)
+    scored_reddit = score.score_reddit_items(filtered_reddit)
+    scored_x = score.score_x_items(filtered_x)
 
     # Sort items
     sorted_reddit = score.sort_items(scored_reddit)

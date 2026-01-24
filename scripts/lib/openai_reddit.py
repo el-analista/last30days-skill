@@ -24,21 +24,27 @@ DEPTH_CONFIG = {
 
 REDDIT_SEARCH_PROMPT = """Search Reddit for DISCUSSION THREADS about: {topic}
 
+DATE RANGE: Only include threads from {from_date} to {to_date} (last 30 days).
+
 SEARCH GUIDANCE:
 - Search for "site:reddit.com/r/ {topic}" to find subreddit discussions
-- Look in subreddits like r/design, r/UI_Design, r/iOSProgramming, r/SwiftUI, r/Figma, r/webdev, r/userexperience, r/graphic_design
+- Look in subreddits like r/design, r/UI_Design, r/iOSProgramming, r/SwiftUI, r/Figma, r/webdev, r/userexperience, r/graphic_design, r/ClaudeAI, r/ClaudeCode
 - ONLY include URLs containing "/r/" and "/comments/" (actual discussion threads)
 - IGNORE: developers.reddit.com, business.reddit.com, reddit.com/user/
 
-Find {min_items}-{max_items} relevant Reddit discussion threads. Prefer recent threads, but include older relevant ones if recent ones are scarce.
+CRITICAL DATE REQUIREMENT:
+- ONLY include threads posted AFTER {from_date}
+- Do NOT include threads older than {from_date}, even if they seem relevant
+- If you cannot find enough recent threads, return FEWER results rather than older ones
+- It is better to return 3 recent threads than 15 old ones
 
-CRITICAL: Return ALL discussion threads you find as JSON. Do NOT return errors or empty results.
+Find {min_items}-{max_items} relevant Reddit discussion threads from the last 30 days.
 
 For EACH Reddit thread URL (containing /r/subreddit/comments/), extract:
 - Thread title
 - Full Reddit URL
 - Subreddit name
-- Date (if visible, otherwise null)
+- Date (MUST be after {from_date}, otherwise do not include)
 - Why it's relevant
 
 Return ONLY valid JSON:
@@ -57,16 +63,18 @@ Return ONLY valid JSON:
 
 Rules:
 - ONLY URLs matching: reddit.com/r/*/comments/*
-- MUST return threads found - NEVER return empty items or errors
-- If threads are older than 30 days, still include them with accurate dates
+- ONLY threads from {from_date} to {to_date}
 - relevance: 0.0-1.0
-- Diverse subreddits preferred"""
+- Diverse subreddits preferred
+- Fewer recent results is better than many old results"""
 
 
 def search_reddit(
     api_key: str,
     model: str,
     topic: str,
+    from_date: str,
+    to_date: str,
     depth: str = "default",
     mock_response: Optional[Dict] = None,
 ) -> Dict[str, Any]:
@@ -76,6 +84,8 @@ def search_reddit(
         api_key: OpenAI API key
         model: Model to use
         topic: Search topic
+        from_date: Start date (YYYY-MM-DD) - only include threads after this
+        to_date: End date (YYYY-MM-DD) - only include threads before this
         depth: Research depth - "quick", "default", or "deep"
         mock_response: Mock response for testing
 
@@ -106,7 +116,13 @@ def search_reddit(
             }
         ],
         "include": ["web_search_call.action.sources"],
-        "input": REDDIT_SEARCH_PROMPT.format(topic=topic, min_items=min_items, max_items=max_items),
+        "input": REDDIT_SEARCH_PROMPT.format(
+            topic=topic,
+            from_date=from_date,
+            to_date=to_date,
+            min_items=min_items,
+            max_items=max_items,
+        ),
     }
 
     return http.post(OPENAI_RESPONSES_URL, payload, headers=headers, timeout=timeout)

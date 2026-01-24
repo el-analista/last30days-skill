@@ -1,8 +1,50 @@
 """Normalization of raw API data to canonical schema."""
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, TypeVar, Union
 
 from . import dates, schema
+
+T = TypeVar("T", schema.RedditItem, schema.XItem, schema.WebSearchItem)
+
+
+def filter_by_date_range(
+    items: List[T],
+    from_date: str,
+    to_date: str,
+    require_date: bool = False,
+) -> List[T]:
+    """Hard filter: Remove items outside the date range.
+
+    This is the safety net - even if the prompt lets old content through,
+    this filter will exclude it.
+
+    Args:
+        items: List of items to filter
+        from_date: Start date (YYYY-MM-DD) - exclude items before this
+        to_date: End date (YYYY-MM-DD) - exclude items after this
+        require_date: If True, also remove items with no date
+
+    Returns:
+        Filtered list with only items in range (or unknown dates if not required)
+    """
+    result = []
+    for item in items:
+        if item.date is None:
+            if not require_date:
+                result.append(item)  # Keep unknown dates (with scoring penalty)
+            continue
+
+        # Hard filter: if date is before from_date, exclude
+        if item.date < from_date:
+            continue  # DROP - too old
+
+        # Hard filter: if date is after to_date, exclude (likely parsing error)
+        if item.date > to_date:
+            continue  # DROP - future date
+
+        result.append(item)
+
+    return result
 
 
 def normalize_reddit_items(
