@@ -6,7 +6,6 @@ Usage:
     python3 last30days.py <topic> [options]
 
 Options:
-    --refresh           Bypass cache and fetch fresh data
     --mock              Use fixtures instead of real API calls
     --emit=MODE         Output mode: compact|json|md|context|path (default: compact)
     --sources=MODE      Source selection: auto|reddit|x|both (default: auto)
@@ -25,7 +24,6 @@ SCRIPT_DIR = Path(__file__).parent.resolve()
 sys.path.insert(0, str(SCRIPT_DIR))
 
 from lib import (
-    cache,
     dates,
     dedupe,
     env,
@@ -158,7 +156,6 @@ def main():
         description="Research a topic from the last 30 days on Reddit + X"
     )
     parser.add_argument("topic", nargs="?", help="Topic to research")
-    parser.add_argument("--refresh", action="store_true", help="Bypass cache")
     parser.add_argument("--mock", action="store_true", help="Use fixtures")
     parser.add_argument(
         "--emit",
@@ -229,22 +226,8 @@ def main():
     # Get date range
     from_date, to_date = dates.get_date_range(30)
 
-    # Check cache (unless refresh or mock)
-    cache_key = cache.get_cache_key(args.topic, from_date, to_date, f"{sources}:{depth}")
-
     # Initialize progress display
     progress = ui.ProgressDisplay(args.topic, show_banner=True)
-
-    if not args.refresh and not args.mock:
-        cached, cache_age = cache.load_cache_with_age(cache_key)
-        if cached:
-            # Use cached data
-            progress.show_cached(cache_age)
-            report = schema.Report.from_dict(cached)
-            report.from_cache = True
-            report.cache_age_hours = cache_age
-            output_result(report, args.emit)
-            return
 
     # Select models
     if args.mock:
@@ -324,10 +307,6 @@ def main():
 
     # Write outputs
     render.write_outputs(report, raw_openai, raw_xai, raw_reddit_enriched)
-
-    # Cache the result (if not mock)
-    if not args.mock:
-        cache.save_cache(cache_key, report.to_dict())
 
     # Show completion
     progress.show_complete(len(deduped_reddit), len(deduped_x))
