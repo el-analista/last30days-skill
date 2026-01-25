@@ -14,6 +14,26 @@ def ensure_output_dir():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
+def _assess_data_freshness(report: schema.Report) -> dict:
+    """Assess how much data is actually from the last 30 days."""
+    reddit_recent = sum(1 for r in report.reddit if r.date and r.date >= report.range_from)
+    x_recent = sum(1 for x in report.x if x.date and x.date >= report.range_from)
+    web_recent = sum(1 for w in report.web if w.date and w.date >= report.range_from)
+
+    total_recent = reddit_recent + x_recent + web_recent
+    total_items = len(report.reddit) + len(report.x) + len(report.web)
+
+    return {
+        "reddit_recent": reddit_recent,
+        "x_recent": x_recent,
+        "web_recent": web_recent,
+        "total_recent": total_recent,
+        "total_items": total_items,
+        "is_sparse": total_recent < 5,
+        "mostly_evergreen": total_items > 0 and total_recent < total_items * 0.3,
+    }
+
+
 def render_compact(report: schema.Report, limit: int = 15, missing_keys: str = "none") -> str:
     """Render compact output for Claude to synthesize.
 
@@ -30,6 +50,14 @@ def render_compact(report: schema.Report, limit: int = 15, missing_keys: str = "
     # Header
     lines.append(f"## Research Results: {report.topic}")
     lines.append("")
+
+    # Assess data freshness and add honesty warning if needed
+    freshness = _assess_data_freshness(report)
+    if freshness["is_sparse"]:
+        lines.append("**⚠️ LIMITED RECENT DATA** - Few discussions from the last 30 days.")
+        lines.append(f"Only {freshness['total_recent']} item(s) confirmed from {report.range_from} to {report.range_to}.")
+        lines.append("Results below may include older/evergreen content. Be transparent with the user about this.")
+        lines.append("")
 
     # Web-only mode banner (when no API keys)
     if report.mode == "web-only":
