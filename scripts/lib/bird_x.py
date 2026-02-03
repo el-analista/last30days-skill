@@ -54,3 +54,48 @@ def check_npm_available() -> bool:
         True if 'npm' command is available in PATH, False otherwise.
     """
     return shutil.which("npm") is not None
+
+
+def install_bird() -> Tuple[bool, str]:
+    """Install Bird CLI via npm.
+
+    Returns:
+        Tuple of (success, message).
+    """
+    if not check_npm_available():
+        return False, "npm not found. Install Node.js first, or install Bird manually: https://github.com/steipete/bird"
+
+    try:
+        _log("Installing Bird CLI...")
+        result = subprocess.run(
+            ["npm", "install", "-g", "@steipete/bird"],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        if result.returncode == 0:
+            return True, "Bird CLI installed successfully!"
+        else:
+            error = result.stderr.strip() or result.stdout.strip() or "Unknown error"
+            return False, f"Installation failed: {error}"
+    except subprocess.TimeoutExpired:
+        return False, "Installation timed out"
+    except Exception as e:
+        return False, f"Installation error: {e}"
+
+
+def get_bird_status() -> Dict[str, Any]:
+    """Get comprehensive Bird status.
+
+    Returns:
+        Dict with keys: installed, authenticated, username, can_install
+    """
+    installed = is_bird_installed()
+    username = is_bird_authenticated() if installed else None
+
+    return {
+        "installed": installed,
+        "authenticated": username is not None,
+        "username": username,
+        "can_install": check_npm_available(),
+    }
