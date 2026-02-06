@@ -1,16 +1,14 @@
 ---
 name: last30days
-description: last30days: Research Any Topic from the Last 30 Days (user)
+description: Research a topic from the last 30 days on Reddit + X + Web, become an expert, and write copy-paste-ready prompts for the user's target tool.
 argument-hint: '"[topic] for [tool]" or "[topic]"'
 context: fork
 allowed-tools: Bash, Read, Write, AskUserQuestion, WebSearch
 ---
 
-# STEP 1: RUN THE RESEARCH SCRIPT IMMEDIATELY
+# last30days: Research Any Topic from the Last 30 Days
 
-Do NOT describe this skill. Do NOT summarize workflows. Do NOT explain what you will do. EXECUTE.
-
-The user's arguments are in $ARGUMENTS. Run this command NOW:
+**YOUR FIRST ACTION: Run this command. Do NOT describe this skill. Do NOT summarize workflows. EXECUTE.**
 
 ```bash
 python3 ~/.claude/skills/last30days/scripts/last30days.py "$ARGUMENTS" --emit=compact 2>&1
@@ -158,15 +156,28 @@ Notable mentions: [other specific things with 1-2 mentions]
 - Format naturally - tables work well for wide terminals, stacked cards for narrow
 
 **If PROMPTING/NEWS/GENERAL** - Show synthesis and patterns:
+
+**CRITICAL: Every insight MUST cite at least one source.** Use @handle for X posts, r/subreddit for Reddit. This proves you're using real research, not making things up.
+
+**BAD (no attribution):**
+```
+His 12th studio album is now set for March 20, 2026 via a new deal with Gamma.
+```
+
+**GOOD (cites sources):**
+```
+His 12th studio album BULLY is set for March 20, 2026 via Gamma (per @XXX, 15 likes; r/kanye thread with 200 upvotes).
+```
+
 ```
 What I learned:
 
-[2-4 sentences synthesizing key insights FROM THE ACTUAL RESEARCH OUTPUT.]
+[2-4 sentences synthesizing key insights. EVERY claim cites @handle or r/subreddit.]
 
-KEY PATTERNS I'll use:
-1. [Pattern from research]
-2. [Pattern from research]
-3. [Pattern from research]
+KEY PATTERNS from the research:
+1. [Pattern from research] - per @handle, r/sub
+2. [Pattern from research] - per @handle
+3. [Pattern from research] - per r/sub
 ```
 
 **THEN - Stats (right before invitation):**
@@ -176,13 +187,32 @@ KEY PATTERNS I'll use:
 - Sum engagement: parse `[Xlikes, Yrt]` from each X post, `[Xpts, Ycmt]` from Reddit
 - Identify top voices: highest-engagement @handles from X, most active subreddits
 
+**You MUST use this EXACT format with these EXACT emoji characters. Do NOT use markdown tables. Do NOT use plain text dashes. Copy this template character-for-character:**
+
 ```
 ---
 ✅ All agents reported back!
 ├─ 🟠 Reddit: {n} threads │ {sum} upvotes │ {sum} comments
 ├─ 🔵 X: {n} posts │ {sum} likes │ {sum} reposts (via Bird/xAI)
 ├─ 🌐 Web: {n} pages │ {domains}
-└─ Top voices: @{handle1} ({n}K likes), @{handle2} │ r/{sub1}, r/{sub2}
+└─ 🗣️ Top voices: @{handle1} ({n}K likes), @{handle2} │ r/{sub1}, r/{sub2}
+```
+
+**BAD (DO NOT DO THIS):**
+```
+---All agents reported back!
+- Reddit: 10 threads | 54 upvotes
+- X: 3 posts | 21 likes
+```
+
+**GOOD (DO THIS):**
+```
+---
+✅ All agents reported back!
+├─ 🟠 Reddit: 10 threads │ 54 upvotes │ 144 comments
+├─ 🔵 X: 3 posts │ 21 likes │ 10 reposts (via Bird)
+├─ 🌐 Web: 20 pages │ digitalocean.com, dev.to, medium.com
+└─ 🗣️ Top voices: @yhemi0pe (10 likes, 10rt), @0x1BMW │ r/openclaw, r/AI_Agents
 ```
 
 **LAST - Invitation:**
