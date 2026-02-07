@@ -37,18 +37,18 @@ Common patterns:
 - `TARGET_TOOL = [extracted tool, or "unknown" if not specified]`
 - `QUERY_TYPE = [RECOMMENDATIONS | NEWS | HOW-TO | GENERAL]`
 
-**DISPLAY your parsing to the user.** Before running any tools, output a single line:
+**DISPLAY your parsing to the user.** Before running any tools, output:
 
-🔍 **{TOPIC}** · {QUERY_TYPE}
-Searching Reddit, X, and the web for {natural language description of what you'll look for}...
+```
+I'll research {TOPIC} across Reddit, X, and the web to find what's been discussed in the last 30 days.
 
-Example outputs:
-- 🔍 **kanye west** · News — Searching Reddit, X, and the web for the latest kanye west news and discussions...
-- 🔍 **best MCP servers** · Recommendations — Searching Reddit, X, and the web for the most recommended MCP servers...
-- 🔍 **nano banana pro prompting** · Prompting — Searching Reddit, X, and the web for nano banana pro prompting techniques and tips...
-- 🔍 **open claw** · General — Searching Reddit, X, and the web for what people are saying about open claw...
+Parsed intent:
+- TOPIC = {TOPIC}
+- TARGET_TOOL = {TARGET_TOOL or "unknown"}
+- QUERY_TYPE = {QUERY_TYPE}
+```
 
-If TARGET_TOOL is known, mention it: "...for nano banana pro prompting techniques to use in ChatGPT..."
+If TARGET_TOOL is known, mention it in the intro: "...to find {QUERY_TYPE}-style content for use in {TARGET_TOOL}."
 
 This text MUST appear before you call any tools. It confirms to the user that you understood their request.
 
