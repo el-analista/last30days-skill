@@ -1,8 +1,11 @@
 """Tests for render module."""
 
+import os
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 # Add lib to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
@@ -69,6 +72,18 @@ class TestRenderCompact(unittest.TestCase):
 
         self.assertIn("xAI key", result)
 
+    def test_web_only_banner_is_platform_neutral(self):
+        report = schema.Report(
+            topic="test",
+            range_from="2026-01-01",
+            range_to="2026-01-31",
+            generated_at="2026-01-31T12:00:00Z",
+            mode="web-only",
+        )
+
+        result = render.render_compact(report)
+        self.assertIn("assistant will search blogs, docs & news", result)
+
 
 class TestRenderContextSnippet(unittest.TestCase):
     def test_renders_snippet(self):
@@ -110,6 +125,38 @@ class TestGetContextPath(unittest.TestCase):
         result = render.get_context_path()
         self.assertIsInstance(result, str)
         self.assertIn("last30days.context.md", result)
+
+
+class TestOutputDirSelection(unittest.TestCase):
+    def setUp(self):
+        self.orig_output_dir = render.OUTPUT_DIR
+
+    def tearDown(self):
+        render.OUTPUT_DIR = self.orig_output_dir
+        os.environ.pop("LAST30DAYS_OUTPUT_DIR", None)
+
+    def test_respects_env_override(self):
+        with tempfile.TemporaryDirectory() as td:
+            os.environ["LAST30DAYS_OUTPUT_DIR"] = td
+            render.ensure_output_dir()
+            self.assertEqual(render.OUTPUT_DIR, Path(td))
+
+    def test_falls_back_to_temp_on_permission_error(self):
+        render.OUTPUT_DIR = Path("/tmp/should-not-exist-out")
+
+        original_mkdir = Path.mkdir
+        calls = {"count": 0}
+
+        def fake_mkdir(self, *args, **kwargs):
+            calls["count"] += 1
+            if calls["count"] == 1:
+                raise PermissionError("no write access")
+            return original_mkdir(self, *args, **kwargs)
+
+        with mock.patch.object(Path, "mkdir", new=fake_mkdir):
+            render.ensure_output_dir()
+
+        self.assertIn("last30days/out", str(render.OUTPUT_DIR))
 
 
 if __name__ == "__main__":

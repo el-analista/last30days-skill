@@ -1,6 +1,8 @@
 """Output rendering for last30days skill."""
 
 import json
+import os
+import tempfile
 from pathlib import Path
 from typing import List, Optional
 
@@ -11,7 +13,17 @@ OUTPUT_DIR = Path.home() / ".local" / "share" / "last30days" / "out"
 
 def ensure_output_dir():
     """Ensure output directory exists."""
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    global OUTPUT_DIR
+    env_dir = os.environ.get("LAST30DAYS_OUTPUT_DIR")
+    if env_dir:
+        OUTPUT_DIR = Path(env_dir)
+
+    try:
+        OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    except PermissionError:
+        # Fall back when default output paths are unavailable in sandboxed envs.
+        OUTPUT_DIR = Path(tempfile.gettempdir()) / "last30days" / "out"
+        OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def _assess_data_freshness(report: schema.Report) -> dict:
@@ -35,7 +47,7 @@ def _assess_data_freshness(report: schema.Report) -> dict:
 
 
 def render_compact(report: schema.Report, limit: int = 15, missing_keys: str = "none") -> str:
-    """Render compact output for Claude to synthesize.
+    """Render compact output for the assistant to synthesize.
 
     Args:
         report: Report data
@@ -61,7 +73,7 @@ def render_compact(report: schema.Report, limit: int = 15, missing_keys: str = "
 
     # Web-only mode banner (when no API keys)
     if report.mode == "web-only":
-        lines.append("**🌐 WEB SEARCH MODE** - Claude will search blogs, docs & news")
+        lines.append("**🌐 WEB SEARCH MODE** - assistant will search blogs, docs & news")
         lines.append("")
         lines.append("---")
         lines.append("**⚡ Want better results?** Add API keys to unlock Reddit & X data:")
@@ -86,10 +98,10 @@ def render_compact(report: schema.Report, limit: int = 15, missing_keys: str = "
     lines.append("")
 
     # Coverage note for partial coverage
-    if report.mode == "reddit-only" and missing_keys == "x":
-        lines.append("*💡 Tip: Add XAI_API_KEY for X/Twitter data and better triangulation.*")
+    if report.mode == "reddit-only" and missing_keys in ("x", "none"):
+        lines.append("*💡 Tip: Add an xAI key (`XAI_API_KEY`) for X/Twitter data and better triangulation.*")
         lines.append("")
-    elif report.mode == "x-only" and missing_keys == "reddit":
+    elif report.mode == "x-only" and missing_keys in ("reddit", "none"):
         lines.append("*💡 Tip: Add OPENAI_API_KEY for Reddit data and better triangulation.*")
         lines.append("")
 
@@ -170,7 +182,7 @@ def render_compact(report: schema.Report, limit: int = 15, missing_keys: str = "
             lines.append(f"  *{item.why_relevant}*")
             lines.append("")
 
-    # Web items (if any - populated by Claude)
+    # Web items (if any - populated by the assistant)
     if report.web_error:
         lines.append("### Web Results")
         lines.append("")
@@ -322,15 +334,15 @@ def render_full_report(report: schema.Report) -> str:
             lines.append(f"> {item.snippet}")
             lines.append("")
 
-    # Placeholders for Claude synthesis
+    # Placeholders for assistant synthesis
     lines.append("## Best Practices")
     lines.append("")
-    lines.append("*To be synthesized by Claude*")
+    lines.append("*To be synthesized by assistant*")
     lines.append("")
 
     lines.append("## Prompt Pack")
     lines.append("")
-    lines.append("*To be synthesized by Claude*")
+    lines.append("*To be synthesized by assistant*")
     lines.append("")
 
     return "\n".join(lines)

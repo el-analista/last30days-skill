@@ -7,7 +7,7 @@ import threading
 import random
 from typing import Optional
 
-# Check if we're in a real terminal (not captured by Claude Code)
+# Check if we're in a real terminal (not captured by an assistant UI)
 IS_TTY = sys.stderr.isatty()
 
 # ANSI color codes
@@ -201,7 +201,7 @@ class Spinner:
             self.thread = threading.Thread(target=self._spin, daemon=True)
             self.thread.start()
         else:
-            # Not a TTY (Claude Code) - just print once
+            # Not a TTY (assistant UI) - just print once
             if not self.shown_static:
                 sys.stderr.write(f"⏳ {self.message}\n")
                 sys.stderr.flush()
@@ -321,7 +321,7 @@ class ProgressDisplay:
     def end_web_only(self):
         """End web-only spinner."""
         if self.spinner:
-            self.spinner.stop(f"{Colors.GREEN}Web{Colors.RESET} Claude will search the web")
+            self.spinner.stop(f"{Colors.GREEN}Web{Colors.RESET} assistant will search the web")
 
     def show_web_only_complete(self):
         """Show completion for web-only mode."""
@@ -329,7 +329,7 @@ class ProgressDisplay:
         if IS_TTY:
             sys.stderr.write(f"\n{Colors.GREEN}{Colors.BOLD}✓ Ready for web search{Colors.RESET} ")
             sys.stderr.write(f"{Colors.DIM}({elapsed:.1f}s){Colors.RESET}\n")
-            sys.stderr.write(f"  {Colors.GREEN}Web:{Colors.RESET} Claude will search blogs, docs & news\n\n")
+            sys.stderr.write(f"  {Colors.GREEN}Web:{Colors.RESET} assistant will search blogs, docs & news\n\n")
         else:
             sys.stderr.write(f"✓ Ready for web search ({elapsed:.1f}s)\n")
         sys.stderr.flush()

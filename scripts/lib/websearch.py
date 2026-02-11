@@ -1,12 +1,12 @@
 """WebSearch module for last30days skill.
 
-NOTE: WebSearch uses Claude's built-in WebSearch tool, which runs INSIDE Claude Code.
-Unlike Reddit/X which use external APIs, WebSearch results are obtained by Claude
-directly and passed to this module for normalization and scoring.
+NOTE: WebSearch uses the assistant's built-in web search tool.
+Unlike Reddit/X which use external APIs, web results are obtained by the
+assistant directly and passed to this module for normalization and scoring.
 
 The typical flow is:
-1. Claude invokes WebSearch tool with the topic
-2. Claude passes results to parse_websearch_results()
+1. Assistant invokes web search tool with the topic
+2. Assistant passes results to parse_websearch_results()
 3. Results are normalized into WebSearchItem objects
 """
 
@@ -259,7 +259,7 @@ def parse_websearch_results(
 ) -> List[Dict[str, Any]]:
     """Parse WebSearch results into normalized format.
 
-    This function expects results from Claude's WebSearch tool.
+    This function expects results from the assistant's web search tool.
     Each result should have: title, url, snippet, and optionally date/relevance.
 
     Uses "Date Detective" approach:

@@ -3,6 +3,7 @@
 import hashlib
 import json
 import os
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
@@ -14,7 +15,19 @@ MODEL_CACHE_TTL_DAYS = 7
 
 def ensure_cache_dir():
     """Ensure cache directory exists."""
-    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    global CACHE_DIR, MODEL_CACHE_FILE
+    env_dir = os.environ.get("LAST30DAYS_CACHE_DIR")
+    if env_dir:
+        CACHE_DIR = Path(env_dir)
+        MODEL_CACHE_FILE = CACHE_DIR / "model_selection.json"
+
+    try:
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    except PermissionError:
+        # Fall back when default cache paths are unavailable in sandboxed envs.
+        CACHE_DIR = Path(tempfile.gettempdir()) / "last30days" / "cache"
+        MODEL_CACHE_FILE = CACHE_DIR / "model_selection.json"
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def get_cache_key(topic: str, from_date: str, to_date: str, sources: str) -> str:

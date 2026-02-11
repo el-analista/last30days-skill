@@ -1,0 +1,3 @@
+display_name: Last30Days
+short_description: Research last-30-day trends from Reddit, X, and web, then synthesize actionable output.
+default_prompt: Research this topic from the last 30 days across Reddit, X, and web, summarize what matters now, and suggest next actions.

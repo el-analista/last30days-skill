@@ -36,6 +36,26 @@ bird login
 
 Bird is free and doesn't require an xAI key. If both Bird and an xAI key are available, Bird is preferred.
 
+## Codex Compatibility
+
+This repo now supports both Claude Code and Codex workflows:
+
+- Claude Code: use `SKILL.md` and `.claude-plugin/` metadata.
+- Codex: use `agents/openai.yaml` metadata.
+- Shared engine: both paths use the same Python runtime under `scripts/`.
+
+| Feature | Claude Code | Codex | Notes |
+|---|---|---|---|
+| Skill instructions | `SKILL.md` | `SKILL.md` | Unified instructions with portable script path lookup |
+| Discovery metadata | `.claude-plugin/*` | `agents/openai.yaml` | Additive, no runtime fork |
+| Research runtime | `scripts/` | `scripts/` | Same Python entrypoint and libs |
+
+If running the script directly in either environment:
+
+```bash
+python3 scripts/last30days.py "your topic" --emit=compact
+```
+
 ## Usage
 
 ```

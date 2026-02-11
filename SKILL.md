@@ -36,6 +36,7 @@ Common patterns:
 - `TOPIC = [extracted topic]`
 - `TARGET_TOOL = [extracted tool, or "unknown" if not specified]`
 - `QUERY_TYPE = [RECOMMENDATIONS | NEWS | HOW-TO | GENERAL]`
+- `OPTIONAL_FLAGS = [any explicit flags user requested, e.g. "--days=7 --quick", or empty]`
 
 **DISPLAY your parsing to the user.** Before running any tools, output:
 
@@ -60,7 +61,21 @@ This text MUST appear before you call any tools. It confirms to the user that yo
 
 **Step 1: Run the research script**
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/last30days}/scripts/last30days.py" "$ARGUMENTS" --emit=compact 2>&1
+if [ -f "scripts/last30days.py" ]; then
+  SKILL_ROOT="."
+elif [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -f "${CLAUDE_PLUGIN_ROOT}/scripts/last30days.py" ]; then
+  SKILL_ROOT="${CLAUDE_PLUGIN_ROOT}"
+elif [ -f "$HOME/.claude/skills/last30days/scripts/last30days.py" ]; then
+  SKILL_ROOT="$HOME/.claude/skills/last30days"
+elif [ -f "$HOME/.codex/skills/last30days/scripts/last30days.py" ]; then
+  SKILL_ROOT="$HOME/.codex/skills/last30days"
+else
+  echo "ERROR: Could not find scripts/last30days.py in repo, CLAUDE_PLUGIN_ROOT, ~/.claude/skills/last30days, or ~/.codex/skills/last30days" >&2
+  exit 1
+fi
+
+EXTRA_FLAGS="${OPTIONAL_FLAGS:-}"
+python3 "${SKILL_ROOT}/scripts/last30days.py" "${TOPIC}" --emit=compact ${EXTRA_FLAGS} 2>&1
 ```
 
 The script will automatically:
